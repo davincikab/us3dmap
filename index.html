@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Maps</title>
+    <link href="https://api.mapbox.com/mapbox-gl-js/v2.1.1/mapbox-gl.css" rel="stylesheet">
+    <script src="https://api.mapbox.com/mapbox-gl-js/v2.1.1/mapbox-gl.js"></script>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" integrity="sha384-wvfXpqpZZVQGK6TAh5PVlGOfQNHSoD2xbE+QkPxCAFlNEevoEH3Sl0sibVcOQVnN" crossorigin="anonymous">
+    <style>
+        :root {
+            --colorBlack:#171418;
+            --colorGrey:#949195;
+            --colorWhite:#fff;
+        }
+
+        body {
+            box-sizing: border-box;
+            margin: 0;
+            font-size: 16px;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif
+        }
+
+        .main {
+            height:100vh;
+            width:100vw;
+            position: relative;
+            background-color: var(--colorBlack);
+        }
+
+        .header-section {
+            position: absolute;
+            top:3%;
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 2;
+            padding: 0.5em 0;
+            /* background-color: var(--colorBlack); */
+        }
+
+        .header-section:first-child {
+            padding:0 0.5em;
+        }
+
+        .flag-icon {
+            height: 30px;
+            width: 30px;
+            margin:0.5em 0.75em;
+            /* overflow: hidden; */
+        }
+
+        .flag-icon img {
+            width: 100%;
+        }
+
+        #map {
+            height: 100vh;
+            width: 100%;
+            z-index: 0;
+            background-color: var(--colorGrey);
+        }
+
+        .collapse-section {
+            position: absolute;
+            bottom: 0%;
+            height: 32vh;
+            padding: 0.5em 0.75em;
+            background-image:linear-gradient(360deg, var(--colorBlack) 50%, transparent);
+            transition: height 0.4s;
+        }
+
+        .collapse-section.collapse {
+            height: 12vh;
+        }
+
+        .text-white {
+            color:var(--colorWhite);
+        }
+
+        .text-grey {
+            color:var(--colorGrey);
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .section-header p {
+            flex:0.9;
+        }
+
+        .d-flex {
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .d-none {
+            display: none;
+        }
+
+        .entry {
+            margin:0.25em 0;
+        }
+
+        .d-flex .entry {
+            flex: 1;
+        }
+
+        .toggle-btn {
+            font-size: 1.8em;
+        }
+
+        @media(min-width:50em) {
+            .main{
+                width: 100vw;
+                overflow: hidden;
+            }
+            .collapse-section {
+                display: inline;
+                width: 100vw;
+                padding: 0.75em 1.5em;
+            }
+            .section-header {
+                justify-content:unset;
+            }
+
+            .collapse-section.collapse {
+                height: 5vh;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="main">
+        <div class="header-section">
+            <div class="text-white">
+                United States of America
+                <div class="text-grey">19.50139--161.75583</div>
+            </div>  
+            <div class="flag-icon">
+                <img src="https://cdn.countryflags.com/thumbs/united-states-of-america/flag-round-250.png" alt="">
+            </div>
+        </div>
+        <div class="map" id="map">
+
+        </div>
+
+        <div class="collapse-section collapse">
+            <div class="section-header text-white">
+                <p class="">
+                    The United States has 50,645.29 square miles  of land area 
+                    and 1,774.74 square miles of water area.
+                </p>
+
+                <div class="toggle-btn text-white" id="toggle-btn">
+                   <i class="fa fa-angle-double-down"></i>
+                   <i class="fa fa-angle-double-up d-none"></i>
+                </div>
+            </div>
+
+            <div class="section-body">
+                <div class="d-flex">
+                    <div class="entry">
+                        <div class="text-grey">Land Area:</div>
+                        <div class="text-white">50,645.29 sq/mi</div>
+                    </div>
+                    <div class="entry">
+                        <div class="text-grey">Water Area:</div>
+                        <div class="text-white">1,774.74 sq/mi</div>
+                    </div>
+                </div>
+
+                <div class="d-flex">
+                     <div class="entry">
+                        <div class="text-grey">Population:</div>
+                        <div class="text-white">1,774.74 sq/mi</div>
+                     </div>
+                     <div class="entry">
+                        <div class="text-grey">Population Density:</div>
+                        <div class="text-white">36 p/mi <sup>2</sup></div>
+                     </div>   
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        mapboxgl.accessToken = 'pk.eyJ1IjoiZGF1ZGk5NyIsImEiOiJjanJtY3B1bjYwZ3F2NGFvOXZ1a29iMmp6In0.9ZdvuGInodgDk7cv-KlujA';
+        var map = new mapboxgl.Map({
+            container: 'map',
+            zoom: 2.0236,
+            center: [-97.026438652459, 29.97066821530909],
+            style: 'mapbox://styles/mapbox/dark-v10',
+        });
+
+        // toggle the bottom section
+        let toggleButton = document.getElementById("toggle-btn");
+        let toggleIcons = document.querySelectorAll(".toggle-btn .fa");
+        let collapseSection = document.querySelector(".collapse-section");
+
+
+        toggleButton.addEventListener("click", function(e) {
+            if(!collapseSection.classList.contains('collapse')) {
+                collapseSection.classList.add("collapse");
+
+                // update the angle button
+                toggleIcons[0].classList.add("d-none");
+                toggleIcons[1].classList.remove("d-none");
+            } else {
+                collapseSection.classList.remove("collapse");
+
+                toggleIcons[0].classList.remove("d-none");
+                toggleIcons[1].classList.add("d-none");
+            }
+        });
+
+    </script>
+</body>
+</html>
