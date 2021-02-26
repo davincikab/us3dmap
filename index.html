@@ -12,6 +12,8 @@
             --colorBlack:#171418;
             --colorGrey:#949195;
             --colorWhite:#fff;
+            --colorLightBlue:#6D768B;
+            --colorBlue:#4853E1;
         }
 
         body {
@@ -38,6 +40,16 @@
             z-index: 2;
             padding: 0.5em 0;
             /* background-color: var(--colorBlack); */
+        }
+
+        .badge {
+            background-color: var(--colorLightBlue);
+            color:var(--colorWhite);
+            border-radius: 8px;
+            width:20px;
+            text-align: center;
+            padding:0.2em 0.25em;
+            margin: 0 0.25em;
         }
 
         .header-section:first-child {
@@ -69,6 +81,7 @@
             padding: 0.5em 0.75em;
             background-image:linear-gradient(360deg, var(--colorBlack) 50%, transparent);
             transition: height 0.4s;
+            z-index: 1;
         }
 
         .collapse-section.collapse {
@@ -114,6 +127,38 @@
             font-size: 1.8em;
         }
 
+        /* 3d map */
+        #map-3d {
+            height: 100vh;
+            width: 100%;
+            z-index: 1;
+            background-color: var(--colorBlue);
+            position: absolute;
+            top:0%;
+        }
+
+        #threed {
+            height: 100vh;
+            width: 100%;
+        }
+
+        .toggle-section {
+            width: 100%;
+            color:var(--colorWhite);
+            position: absolute;
+            bottom: 2%;
+            border-radius: 40px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .toggle-section .btn {
+            background-color: var(--colorLightBlue);
+            padding: 0.5em 0.75em;
+            cursor: pointer;
+            border-radius: 3px;
+        }
+
         @media(min-width:50em) {
             .main{
                 width: 100vw;
@@ -138,7 +183,11 @@
     <div class="main">
         <div class="header-section">
             <div class="text-white">
-                United States of America
+                <div class="d-flex">
+                    United States of America
+                    <div class="badge">#1</div>
+                </div>
+                
                 <div class="text-grey">19.50139--161.75583</div>
             </div>  
             <div class="flag-icon">
@@ -146,7 +195,6 @@
             </div>
         </div>
         <div class="map" id="map">
-
         </div>
 
         <div class="collapse-section collapse">
@@ -187,14 +235,27 @@
             </div>
         </div>
     </div>
+    <div class="map-3d" id="map-3d">
+        <div id="threed"></div>
+        <div class="toggle-section" id="toggle-3d">
+            <div class="btn">Exit 3D View</div>
+        </div>
+        </div>
+    </div>
 
     <script>
         mapboxgl.accessToken = 'pk.eyJ1IjoiZGF1ZGk5NyIsImEiOiJjanJtY3B1bjYwZ3F2NGFvOXZ1a29iMmp6In0.9ZdvuGInodgDk7cv-KlujA';
-        var map = new mapboxgl.Map({
+        // let zoom = window.innerHeight 
+
+        let mobileBounds = [[-64.60222050584223, 66.15640443411053], [-129.45065679907688, -25.361591738836523]];
+        let desktopBounds = [[-126.180383, 19.560182], [-67.508087, 53.92002]];
+
+        let map = new mapboxgl.Map({
             container: 'map',
-            zoom: 2.0236,
-            center: [-97.026438652459, 29.97066821530909],
+            zoom: 15.0236,
+            center: [-73.6572538, 40.7991594],
             style: 'mapbox://styles/mapbox/dark-v10',
+            maxBounds:new mapboxgl.LngLatBounds([-126.180383, 19.560182], [-67.508087, 53.92002])
         });
 
         // toggle the bottom section
@@ -218,6 +279,48 @@
             }
         });
 
+
+        // 3D map
+        var threedSection = document.getElementById("map-3d");
+        var toggle3dButton = document.getElementById("toggle-3d");
+        var map3d = new mapboxgl.Map({
+            container: 'threed',
+            zoom: 16.036,
+            pitch: 60,
+            center: [-73.6572538, 40.7991594],
+            style: 'mapbox://styles/mapbox/dark-v10',
+            maxBounds:new mapboxgl.LngLatBounds([-126.180383, 19.560182], [-67.508087, 53.92002])
+        });
+
+        // 3d map
+        map3d.on('load', function(e) {
+            map3d.addLayer({
+                'id': '3d-buildings',
+                'source': 'composite',
+                'source-layer': 'building',
+                'filter': ['==', 'extrude', 'true'],
+                'type': 'fill-extrusion',
+                'minzoom': 15,
+                'paint': {
+                    'fill-extrusion-color': '#afa7a0',
+                    'fill-extrusion-height': {
+                        'type': 'identity',
+                        'property': 'height'
+                    },
+                    'fill-extrusion-base': {
+                        'type': 'identity',
+                        'property': 'min_height'
+                    },
+                    'fill-extrusion-opacity': .6
+                }
+            });
+
+
+        });
+
+        toggle3dButton.addEventListener("click", function(e) {
+            threedSection.classList.toggle("d-none");
+        });
     </script>
 </body>
 </html>
