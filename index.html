@@ -328,8 +328,48 @@
             maxBounds:new mapboxgl.LngLatBounds([-126.180383, 19.560182], [-67.508087, 53.92002])
         });
 
+        var city = {
+            'type': 'FeatureCollection',
+            'features': [
+                {
+                'type': 'Feature',
+                'properties': {
+                    'description': "Roslyn",
+                },
+                'geometry': {
+                    'type': 'Point',
+                    'coordinates': [-73.6572538, 40.7991594]
+                }
+                }
+            ]
+        };
+
         // 3d map
         map3d.on('load', function(e) {
+            // add roslyn label
+            map3d.addSource('cities', {
+                'type': 'geojson',
+                'data': city
+            });
+            
+            map3d.addLayer({
+                'id': 'poi-labels',
+                'type': 'symbol',
+                'source': 'cities',
+                'paint':{
+                    'text-color':'#000',
+                    'text-halo-color':'#fff',
+                    'text-halo-width':2
+                },
+                'layout': {
+                    'text-field': ['get', 'description'],
+                    'text-variable-anchor': ['top', 'bottom', 'left', 'right'],
+                    'text-radial-offset': 0.5,
+                    'text-justify': 'auto',
+                    'icon-image': ['concat', ['get', 'icon'], '-15']
+                }
+            });
+
             map3d.addLayer({
                 'id': '3d-buildings',
                 'source': 'composite',
