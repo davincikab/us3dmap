@@ -39,7 +39,7 @@
         }
 
         .card {
-            height: 60vh;
+            height: 70vh;
             background-color: #4853E1;
             margin:0.5em 0em;
             position: relative;
@@ -84,7 +84,7 @@
         }
 
         #map {
-            height: 60vh;
+            height: 70vh;
             width: 100%;
             z-index: 0;
             background-color: var(--colorGrey);
@@ -102,6 +102,19 @@
 
         .collapse-section.collapse {
             height: 12vh;
+        }
+
+        .collapse-section .btn {
+            background-color: var(--colorLightBlue);
+            padding: 0.25em 0.5em;
+            font-size: 1em;
+            cursor: pointer;
+            border-radius: 3px;
+            width: auto;
+            max-width: 110px;
+            position: absolute;
+            left: 30%;
+            top:-5%;
         }
 
         .text-white {
@@ -145,7 +158,7 @@
 
         /* 3d map */
         #map-3d {
-            height: 60vh;
+            height: 70vh;
             width: 100%;
             z-index: 1;
             background-color: var(--colorBlue);
@@ -154,7 +167,7 @@
         }
 
         #threed {
-            height: 60vh;
+            height: 70vh;
             width: 100%;
         }
 
@@ -173,6 +186,8 @@
             padding: 0.5em 0.75em;
             cursor: pointer;
             border-radius: 3px;
+            width: auto;
+            max-width: 110px;
         }
 
         @media(min-width:50em) {
@@ -216,7 +231,7 @@
             <div class="header-section">
                 <div class="text-white">
                     <div class="d-flex">
-                        United States of America
+                        Roslyn, New York
                         <div class="badge">#1</div>
                     </div>
                     
@@ -230,10 +245,11 @@
             </div>
     
             <div class="collapse-section collapse">
+                <div class="btn" id="toggle">Show 3D View</div>
                 <div class="section-header text-white">
                     <p class="">
-                        The United States has 50,645.29 square miles  of land area 
-                        and 1,774.74 square miles of water area.
+                        Roslyn, New York, has 7.76 square miles  of land area 
+                        and 2.5 square miles of water area.
                     </p>
     
                     <div class="toggle-btn text-white" id="toggle-btn">
@@ -246,11 +262,11 @@
                     <div class="d-flex">
                         <div class="entry">
                             <div class="text-grey">Land Area:</div>
-                            <div class="text-white">50,645.29 sq/mi</div>
+                            <div class="text-white">7.76 sq/mi</div>
                         </div>
                         <div class="entry">
                             <div class="text-grey">Water Area:</div>
-                            <div class="text-white">1,774.74 sq/mi</div>
+                            <div class="text-white">2.5 sq/mi</div>
                         </div>
                     </div>
     
@@ -271,7 +287,7 @@
             <div class="map-3d" id="map-3d">
                 <div id="threed"></div>
                 <div class="toggle-section">
-                    <div class="btn" id="toggle-3d">Show 3D View</div>
+                    <div class="btn" id="toggle-3d">Exit 3D View</div>
                 </div>
                 </div>
             </div>
@@ -283,13 +299,51 @@
         mapboxgl.accessToken = 'pk.eyJ1IjoiZnV0dXJlcXVlc3QiLCJhIjoiY2tsOXF5YjBpMXBuMzJwcHJtcW1paWR3cSJ9.Wm9-3kbklDkExCUNxK8XQA';
         // let zoom = window.innerHeight 
 
+        var roslynCity = {
+            'type': 'FeatureCollection',
+            'features': [
+                {
+                    "type":"Feature",
+                    "properties":{},
+                    "geometry":{
+                        "type":"LineString",
+                        "coordinates":[
+                            [-73.63955,40.80595],[-73.63819,40.80645],[-73.63698,40.8069],[-73.64278,40.8012],
+                            [-73.64398,40.79829],[-73.64328,40.7936],[-73.64328,40.792],[-73.64768,40.7915],[-73.64898,40.7914],[-73.64918,40.7924],
+                            [-73.65318,40.792],[-73.65468,40.7943],[-73.65698,40.7986],[-73.65888,40.7999],[-73.65928,40.8006],
+                            [-73.65828,40.8012],[-73.65738,40.8019],[-73.65398,40.8034],[-73.65247,40.80366],[-73.6516,40.80429],
+                            [-73.65138,40.8028],[-73.64988,40.8011],[-73.64938,40.8018],[-73.65098,40.8039],[-73.65048,40.8059],
+                            [-73.64888,40.80619],[-73.64588,40.8054],[-73.64128,40.8053],[-73.63955,40.80595],[-73.63955,40.80595]
+                        ]
+                    }
+                }
+            ]
+        };
+
+        var city = {
+            'type': 'FeatureCollection',
+            'features': [
+                {
+                    'type': 'Feature',
+                    'properties': {
+                        'description': "Roslyn",
+                    },
+                    'geometry': {
+                        'type': 'Point',
+                        'coordinates': [-73.64994169477927, 40.79831428110711]
+                    }
+                }
+            ]
+        };
+
+        // bounds
         let mobileBounds = [[-64.60222050584223, 66.15640443411053], [-129.45065679907688, -25.361591738836523]];
         let desktopBounds = [[-126.180383, 19.560182], [-67.508087, 53.92002]];
 
         let map = new mapboxgl.Map({
             container: 'map',
-            zoom: 2.48236,
-            center: [-100.52345, 40.1028],
+            zoom: 12.48236,
+            center: [-73.64994169477927, 40.79831428110711],
             style: 'mapbox://styles/futurequest/cklmncax93kky17w3fqcd9tqb',
             // maxBounds:new mapboxgl.LngLatBounds([-126.180383, 19.560182], [-67.508087, 53.92002])
         });
@@ -315,6 +369,27 @@
             }
         });
 
+        map.on("load", function(e) {
+            // add the boundary layer
+            map.addSource("roslyn-city", {
+                'type':'geojson',
+                'data':roslynCity,
+            });
+
+            map.addLayer({
+                'id': 'roslyn',
+                'source': 'roslyn-city',
+                'type':'line',
+                'paint':{
+                    'line-color':'red',
+                    'line-width':2
+                },
+                'layout':{
+
+                }
+            });
+        });
+
 
         // 3D map
         var threedSection = document.getElementById("map-3d");
@@ -323,26 +398,11 @@
             container: 'threed',
             zoom: 14.036,
             pitch: 0,
-            center: [-73.6572538, 40.7991594],
+            center: [-73.64994169477927, 40.79831428110711],
             style: 'mapbox://styles/futurequest/cklm1hjkk2zbf17pgettvkykv',
             maxBounds:new mapboxgl.LngLatBounds([-126.180383, 19.560182], [-67.508087, 53.92002])
         });
 
-        var city = {
-            'type': 'FeatureCollection',
-            'features': [
-                {
-                'type': 'Feature',
-                'properties': {
-                    'description': "Roslyn",
-                },
-                'geometry': {
-                    'type': 'Point',
-                    'coordinates': [-73.6572538, 40.7991594]
-                }
-                }
-            ]
-        };
 
         // 3d map
         map3d.on('load', function(e) {
@@ -359,10 +419,11 @@
                 'paint':{
                     'text-color':'#000',
                     'text-halo-color':'#fff',
-                    'text-halo-width':2
+                    'text-halo-width':1.5
                 },
                 'layout': {
                     'text-field': ['get', 'description'],
+                    'text-size':20,
                     'text-variable-anchor': ['top', 'bottom', 'left', 'right'],
                     'text-radial-offset': 0.5,
                     'text-justify': 'auto',
@@ -392,6 +453,24 @@
             });
 
 
+            // animate Line boundary layer
+            map3d.addSource("roslyn-city", {
+                'type':'geojson',
+                'data':roslynCity,
+            });
+
+            map3d.addLayer({
+                'id': 'roslyn',
+                'source': 'roslyn-city',
+                'type':'line',
+                'paint':{
+                    'line-color':'red',
+                    'line-width':2
+                },
+                'layout':{
+
+                }
+            });
         });
 
         toggle3dButton.addEventListener("click", function(e) {
@@ -412,6 +491,7 @@
                 map3d.setPitch(0);
                 map3d.setZoom(14);
             }
+            
             // animate map pitch
 
         });
