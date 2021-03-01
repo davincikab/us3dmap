@@ -37,15 +37,17 @@
             flex-direction: column;
             height: auto;
             width: 100vw;
+            height: 100vh;
         }
 
         .card {
-            height: 70vh;
+            height: 100vh;
             background-color: #4853E1;
             margin:0.5em 0em;
             position: absolute;
             overflow: hidden;
             z-index: 0;
+            width: 100vw;
         }
 
         .header-section {
@@ -86,7 +88,7 @@
         }
 
         #map {
-            height: 70vh;
+            height: 100vh;
             width: 100%;
             z-index: 0;
             background-color: var(--colorGrey);
@@ -166,7 +168,7 @@
 
         /* 3d map */
         #map-3d {
-            height: 70vh;
+            height: 100vh;
             width: 100%;
             z-index: 1;
             background-color: var(--colorBlue);
@@ -175,7 +177,7 @@
         }
 
         #threed {
-            height: 70vh;
+            height: 100vh;
             width: 100%;
         }
 
@@ -213,7 +215,7 @@
             }
 
             .collapse-section.collapse {
-                height: 8vh;
+                height: 10vh;
             }
             .card-list {
                 display: flex;
@@ -231,6 +233,19 @@
                 margin: 0 0.5em;
                 overflow: hidden;
                 z-index: 0;
+                height: 70vh;
+            }
+
+            #map {
+                height: 70vh;
+            }
+
+            #map-3d {
+                height: 70vh;
+            }
+            
+            #threed {
+                height: 70vh;
             }
         }
     </style>
