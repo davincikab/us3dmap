@@ -7,6 +7,7 @@
     <link href="https://api.mapbox.com/mapbox-gl-js/v2.1.1/mapbox-gl.css" rel="stylesheet">
     <script src="https://api.mapbox.com/mapbox-gl-js/v2.1.1/mapbox-gl.js"></script>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" integrity="sha384-wvfXpqpZZVQGK6TAh5PVlGOfQNHSoD2xbE+QkPxCAFlNEevoEH3Sl0sibVcOQVnN" crossorigin="anonymous">
+    <script src='https://unpkg.com/@turf/turf/turf.min.js'></script>
     <style>
         :root {
             --colorBlack:#171418;
@@ -42,8 +43,9 @@
             height: 70vh;
             background-color: #4853E1;
             margin:0.5em 0em;
-            position: relative;
+            position: absolute;
             overflow: hidden;
+            z-index: 0;
         }
 
         .header-section {
@@ -104,6 +106,12 @@
             height: 12vh;
         }
 
+        .collapse-section  .map-toggler {
+            display: flex;
+            justify-content: center;
+            width: 100%;
+        }
+
         .collapse-section .btn {
             background-color: var(--colorLightBlue);
             padding: 0.25em 0.5em;
@@ -112,9 +120,6 @@
             border-radius: 3px;
             width: auto;
             max-width: 110px;
-            position: absolute;
-            left: 30%;
-            top:-5%;
         }
 
         .text-white {
@@ -148,6 +153,9 @@
             margin:0.25em 0;
         }
 
+        .d-index-2 {
+            z-index: 2 !important;
+        }
         .d-flex .entry {
             flex: 1;
         }
@@ -218,16 +226,18 @@
                 overflow: hidden;
             }
             .card {
-                width: 30vw;
+                position: absolute;
+                width: 50vw;
                 margin: 0 0.5em;
                 overflow: hidden;
+                z-index: 0;
             }
         }
     </style>
 </head>
 <body>
     <div class="card-list">
-        <div class="card">
+        <div class="card d-index-2" id="card-2d">
             <div class="header-section">
                 <div class="text-white">
                     <div class="d-flex">
@@ -245,7 +255,10 @@
             </div>
     
             <div class="collapse-section collapse">
-                <div class="btn" id="toggle">Show 3D View</div>
+                <div class="map-toggler">
+                    <div class="btn" id="open-3d">Show 3D View</div>
+                </div>
+                
                 <div class="section-header text-white">
                     <p class="">
                         Roslyn, New York, has 7.76 square miles  of land area 
@@ -283,11 +296,11 @@
                 </div>
             </div>
         </div>
-        <div class="card">
+        <div class="card" id="card-3d">
             <div class="map-3d" id="map-3d">
                 <div id="threed"></div>
                 <div class="toggle-section">
-                    <div class="btn" id="toggle-3d">Exit 3D View</div>
+                    <div class="btn" id="close-3d">Exit 3D View</div>
                 </div>
                 </div>
             </div>
@@ -299,6 +312,10 @@
         mapboxgl.accessToken = 'pk.eyJ1IjoiZnV0dXJlcXVlc3QiLCJhIjoiY2tsOXF5YjBpMXBuMzJwcHJtcW1paWR3cSJ9.Wm9-3kbklDkExCUNxK8XQA';
         // let zoom = window.innerHeight 
 
+        var animationFrame;
+        var trackChunks = [];
+        let previousBearing = 12;
+        var previousDBearing = 0;
         var roslynCity = {
             'type': 'FeatureCollection',
             'features': [
@@ -350,8 +367,14 @@
 
         // toggle the bottom section
         let toggleButton = document.getElementById("toggle-btn");
+
+        let open3dCard = document.getElementById("open-3d");
+        let close3dCard = document.getElementById("close-3d");
         let toggleIcons = document.querySelectorAll(".toggle-btn .fa");
         let collapseSection = document.querySelector(".collapse-section");
+
+        let card2D = document.getElementById("card-2d");
+        let card3D = document.getElementById("card-3d");
 
 
         toggleButton.addEventListener("click", function(e) {
@@ -439,7 +462,7 @@
                 'type': 'fill-extrusion',
                 'minzoom': 15,
                 'paint': {
-                    'fill-extrusion-color':"#959F9F",
+                    'fill-extrusion-color':"#fff",
                     'fill-extrusion-height': {
                         'type': 'identity',
                         'property': 'height'
@@ -456,7 +479,7 @@
             // animate Line boundary layer
             map3d.addSource("roslyn-city", {
                 'type':'geojson',
-                'data':roslynCity,
+                'data':{'type':'FeatureCollection', 'features':[]},
             });
 
             map3d.addLayer({
@@ -471,29 +494,39 @@
 
                 }
             });
+
+            trackChunks = createChunks(roslynCity.features[0].geometry.coordinates);
         });
 
-        toggle3dButton.addEventListener("click", function(e) {
-            // threedSection.classList.toggle("d-none");
-            let textContent = toggle3dButton.textContent;
+        open3dCard.addEventListener("click", function(e) {
+            // threedSection.classList.toggle("d-none");; 
+            card2D.classList.remove("d-index-2");
+            card3D.classList.add("d-index-2");
 
-            if(textContent.includes("Show")) {
-                toggle3dButton.textContent = "Exit 3D View";
-                
-                if(map3d.getZoom() < 16) {
-                    map3d.setZoom(16.2);
-                }
-
-                animatePitch();
-
-            } else {
-                toggle3dButton.textContent = "Show 3D View";
-                map3d.setPitch(0);
-                map3d.setZoom(14);
+            if(map3d.getZoom() < 16) {
+                map3d.setZoom(16.2);
             }
-            
-            // animate map pitch
 
+            // animate map pitch
+            animatePitch();
+
+            // animating line
+            setTimeout(function(e){
+                animateLine();
+            }, 1500);
+
+        });
+
+        close3dCard.addEventListener("click", function(e) {
+            map3d.setPitch(0);
+            map3d.setZoom(14);
+
+            // hide the 
+            card2D.classList.add("d-index-2");
+            card3D.classList.remove("d-index-2");
+            
+            // cancel animation frame
+            cancelAnimationFrame(animationFrame);
         });
 
         function animate({timing, draw, duration}) {
@@ -525,12 +558,129 @@
             return timeFraction;
         }
 
+        function easing(t) {
+            return t * (2 - t);
+        }
+
         function animatePitch() {
             animate({
                 timing:linear,
                 draw:draw,
                 duration:1500
             });
+        }
+
+        function distanceTo(p1, p2) {
+            var from = turf.point(p1);
+            var to = turf.point(p2);
+            var options = {units: 'kilometres'};
+            var distance = turf.distance(from, to, options);
+            return distance * 1000;
+        }
+
+        // Animating the polyline
+        function createChunks(latlngs, distance=10) {
+            var i,
+                len = latlngs.length,
+                chunkedLatLngs = [];
+
+            for (i=1;i<len;i++) {
+            var cur = latlngs[i-1],
+                next = latlngs[i],
+                dist = distanceTo(cur, next),
+                factor = distance / dist,
+                dLat = factor * (next[1] - cur[1]),
+                dLng = factor * (next[0] - cur[0]);
+
+            if (dist > distance) {
+                while (dist > distance) {
+                cur = [cur[1] + dLat, cur[0] + dLng].reverse();
+                dist = distanceTo(cur, next);
+                chunkedLatLngs.push(cur);
+                }
+
+                chunkedLatLngs.push(cur);
+            } else {
+                chunkedLatLngs.push(cur);
+            }
+            }
+            chunkedLatLngs.push(latlngs[len-1]);
+
+            return chunkedLatLngs;
+        }
+
+        // animating the linework
+        function animateLine() {
+            if(roslynCity.features[0].geometry.coordinates.length > 0) {
+                // reset geojson feature
+                roslynCity.features[0].geometry.coordinates = [];
+                // update the map source
+                map3d.getSource('roslyn-city').setData(roslynCity);
+            }
+
+        // startTime = new Date();
+            console.log(roslynCity);
+
+            animate({
+                duration:60000,
+                draw:drawLine,
+                timing:linear
+            });
+
+            console.timeEnd("Animate Line");
+        }
+
+
+        function drawLine(progress) {
+            // update the coordinates
+            var index = (trackChunks.length - 1) * progress;
+            index = index.toFixed();
+
+            index = parseInt(index);
+            if(index < 0) {
+                return;
+            }
+
+            if(!roslynCity.features[0].geometry.coordinates[index]) {
+                let coordinates = trackChunks[index];
+
+                // create the geojson
+                roslynCity.features[0].geometry.coordinates.push(coordinates);
+
+                // update the map source
+                map3d.getSource('roslyn-city').setData(roslynCity);
+
+                // transition map bearing
+                if(trackChunks[index] && trackChunks[index + 1]) {
+                    let from  = turf.point(trackChunks[index]);
+                    let to = turf.point(trackChunks[index + 1]);
+
+                    var bearing = turf.bearing(from, to);
+                    bearing = parseInt(bearing);
+
+                    if(bearing < 0) {
+                        bearing = 360 + bearing;
+                    }
+
+                    let dBearing = bearing - previousBearing;
+                    if(Math.abs(dBearing) > 90) {
+                        // console.log(dBearing);
+                        let ddBearing = Math.abs(previousDBearing) - Math.abs(dBearing);
+
+                        if(Math.abs(ddBearing) > 10) {
+                            map3d.setBearing(bearing);
+                            
+                        }
+
+                        previousDBearing = dBearing;
+                    }
+
+                    map3d.setCenter(coordinates);
+
+                    // 
+                    previousBearing = bearing;
+                }
+            }
         }
     </script>
 </body>
